@@ -1,0 +1,132 @@
+
+    #include "mod_joystick.as"
+    #include "hspext.as"
+    #include "cfg.as"
+
+    pname = ""
+    port = 0
+    masconB = 0
+    masconP = 0
+
+    cfgAS_init "config.ascfg"
+    cfgAS_read "ProgramName", pname
+    cfgAS_read "PortNum", port
+    cfgAS_read "MasconB", masconB
+    cfgAS_read "MasconP", masconP
+
+    repeat -1
+
+        aplsel pname, cnt
+
+        if ( stat == 0 ) {
+
+            dialog "プログラム \""+ refstr +"\" が検出されました。このプログラムにキー情報を送信しますか？", 2, "ZuikiRTMMasConverter"
+
+            if ( stat == 6 ) : break
+
+        } else {
+
+            dialog "プログラムは検出されませんでした。再試行しますか？", 2, "ZuikiRTMMasConverter"
+
+            if ( stat != 6 ) : break
+
+        }
+
+    loop
+
+*start
+
+    dim data, 16
+
+    nowMasconPos = 0
+    prevMasconPos = 0
+
+    isSkipCheckMasconPos = 1
+    isCalibrated = 0
+
+    repeat -1
+
+        joyGetPosEx data, port
+
+        if ( stat ) {
+
+            dialog "コントローラーが検出されませんでした。再試行しますか？", 2, "ZuikiRTMMasConverter"
+
+            if ( stat != 6 ) : stop
+
+        } else {
+
+            break
+
+        }
+
+    loop
+
+    repeat -1
+
+        joyGetPosEx data, port
+
+        if ( stat ) : break
+
+        redraw 0
+
+        pos 0, 0
+        color 255, 255, 255 : boxf
+        color
+
+        mes "Port: "+ port
+        mes "KeycodeMasconB: "+ masconB
+        mes "KeycodeMasconP: "+ masconP
+
+        foreach data
+
+            mes "data("+ cnt +"): "+ data.cnt
+
+            /** マスコン操作 */
+
+            nowMasconPos = data.3
+
+            if ( isSkipCheckMasconPos ) {
+
+                isSkipCheckMasconPos = 0
+
+            } else {
+
+                if ( prevMasconPos > nowMasconPos ) and ( nowMasconPos != 1280 ) : logmes "+" : aplkey masconB
+                if ( prevMasconPos < nowMasconPos ) and ( nowMasconPos != 4864 ): logmes "-" : aplkey masconP
+
+            }
+
+            prevMasconPos = nowMasconPos
+
+            /** 非常投入操作 */
+
+            if ( data.3 == 0 ) {
+
+                if ( isCalibrated == 0 ) {
+
+                    repeat 16
+
+                        logmes "+E" : aplkey masconB
+
+                    loop
+
+                    isCalibrated = 1
+
+                }
+
+            } else {
+
+                isCalibrated = 0
+
+            }
+    
+        loop
+
+        redraw 1
+
+        await 1
+
+    loop
+
+    goto *start
