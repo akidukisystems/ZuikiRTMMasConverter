@@ -1,1 +1,4 @@
-start.ax
+*.ax
+packfile
+obj
+hsptmp
