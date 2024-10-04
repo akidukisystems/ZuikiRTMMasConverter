@@ -1,5 +1,6 @@
 
     #include "cfg.as"
+    #packopt name "KeyConfig"
 
     pname = ""
     port = 0

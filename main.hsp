@@ -3,6 +3,8 @@
     #include "hspext.as"
     #include "cfg.as"
 
+    #packopt name "ZRMC"
+
     pname = ""
     port = 0
     masconB = 0
