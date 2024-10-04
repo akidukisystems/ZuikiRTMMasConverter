@@ -46,6 +46,8 @@
     isSkipCheckMasconPos = 1
     isCalibrated = 0
 
+    noControlerMode = 0
+
     repeat -1
 
         joyGetPosEx data, port
@@ -54,7 +56,12 @@
 
             dialog "コントローラーが検出されませんでした。再試行しますか？", 2, "Zuiki RTM MasConverter"
 
-            if ( stat != 6 ) : stop
+            if ( stat != 6 ) {
+                
+                noControlerMode = 1
+                break
+
+            }
 
         } else {
 
@@ -68,7 +75,7 @@
 
         joyGetPosEx data, port
 
-        if ( stat ) : break
+        if ( stat ) and ( noControlerMode == 0 ) : break
 
         redraw 0
 
