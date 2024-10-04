@@ -1,0 +1,117 @@
+
+    #include "cfg.as"
+
+    pname = ""
+    port = 0
+    masconB = 0
+    masconP = 0
+
+    keyStat = 0
+
+    screen 1, 320, 240
+
+    title ""
+
+    mes "割り当てるキーを押してください。\n（同時押し不可）"
+    button gosub "キャンセル", *l_cancel
+
+    gsel 1, -1
+    gsel 0
+
+
+*start
+    cls 0
+
+    title "Zuiki RTM MasConverter - Key Config"
+
+    cfgAS_init "config.ascfg"
+    cfgAS_read "ProgramName", pname
+    cfgAS_read "PortNum", port
+    cfgAS_read "MasconB", masconB
+    cfgAS_read "MasconP", masconP
+
+    keyStr = ""
+
+    pos 0, ginfo_cy
+    poke keyStr, 0, masconB
+    mes "ワンハンドルマスコン　制動方向: "+ keyStr +"　", 1
+    button "設定", *l_setMasconB
+
+    pos 0, ginfo_cy
+    poke keyStr, 0, masconP
+    mes "ワンハンドルマスコン　力行方向: "+ keyStr +"　", 1
+    button "設定", *l_setMasconP
+
+    stop
+
+*l_setMasconB
+
+    gsel 1, 1
+
+    onkey gosub *l_pushedKey
+    keyStat = 0
+
+    repeat
+
+        if ( keyStat ) : break
+
+        wait 1
+
+    loop
+
+    if ( keyStat == 1 ) {
+
+        masconB = wparam
+        cfgAS_write "MasconB", masconB, 1
+        cfgAS_save "config.ascfg"
+
+    }
+
+    onkey 0
+    gsel 1, -1
+    gsel 0
+
+    goto *start
+
+*l_setMasconP
+
+    gsel 1, 1
+
+    onkey gosub *l_pushedKey
+    keyStat = 0
+
+    repeat
+
+        if ( keyStat ) : break
+
+        wait 1
+
+    loop
+
+    if ( keyStat == 1 ) {
+
+        masconP = wparam
+        cfgAS_write "MasconB", masconP, 1
+        cfgAS_save "config.ascfg"
+
+    }
+
+    onkey 0
+    gsel 1, -1
+    gsel 0
+
+    goto *start
+
+
+
+*l_pushedKey
+
+    keyStat = 1
+
+    return
+
+*l_cancel
+
+    keyStat = 2
+
+    return

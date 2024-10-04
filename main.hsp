@@ -8,6 +8,8 @@
     masconB = 0
     masconP = 0
 
+    title "Zuiki RTM MasConverter"
+
     cfgAS_init "config.ascfg"
     cfgAS_read "ProgramName", pname
     cfgAS_read "PortNum", port
@@ -20,13 +22,13 @@
 
         if ( stat == 0 ) {
 
-            dialog "プログラム \""+ refstr +"\" が検出されました。このプログラムにキー情報を送信しますか？", 2, "ZuikiRTMMasConverter"
+            dialog "プログラム \""+ refstr +"\" が検出されました。このプログラムにキー情報を送信しますか？", 2, "Zuiki RTM MasConverter"
 
             if ( stat == 6 ) : break
 
         } else {
 
-            dialog "プログラムは検出されませんでした。再試行しますか？", 2, "ZuikiRTMMasConverter"
+            dialog "プログラムは検出されませんでした。再試行しますか？", 2, "Zuiki RTM MasConverter"
 
             if ( stat != 6 ) : break
 
@@ -50,7 +52,7 @@
 
         if ( stat ) {
 
-            dialog "コントローラーが検出されませんでした。再試行しますか？", 2, "ZuikiRTMMasConverter"
+            dialog "コントローラーが検出されませんでした。再試行しますか？", 2, "Zuiki RTM MasConverter"
 
             if ( stat != 6 ) : stop
 
