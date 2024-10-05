@@ -32,6 +32,9 @@
 
     pname = ""
     port = 0
+    cfile = ""
+    dnotchs = ""
+    sdim dnotchArr
 
     dim buttons, 14
 
@@ -55,6 +58,16 @@
     cfgAS_init "config.ascfg"
     cfgAS_read "ProgramName", pname
     cfgAS_read "PortNum", port
+    cfgAS_read "Controller", cfile
+    cfgAS_read "DisabledNotch", dnotchs
+
+    splitEx dnotchs, dnotchArr, ','
+
+    foreach dnotchArr
+
+        if ( dnotchArr.0 == "0" ) : dialog "無効ノッチ設定に\"EB\"段が設定されています。続行できません。"
+
+    loop
 
     keyName.0 = "MasconB"
     keyName.1 = "MasconP"
@@ -74,6 +87,16 @@
     foreach keyName
 
         cfgAS_read keyName.cnt, buttons.cnt
+
+    loop
+
+    cfgAS_init cfile
+
+    dim notch, 15
+
+    foreach notch
+
+        cfgAS_read "notch"+ cnt, notch.cnt
 
     loop
 
@@ -166,8 +189,37 @@
 
             } else {
 
-                if ( prevMasconPos > nowMasconPos ) and ( nowMasconPos != 1280 ) : logmes "+" : aplkey buttons.masconB
-                if ( prevMasconPos < nowMasconPos ) and ( nowMasconPos != 4864 ): logmes "-" : aplkey buttons.masconP
+                if ( prevMasconPos > nowMasconPos ) {
+
+                    notchSkip = 0
+
+                    foreach dnotchArr
+
+                        if ( dnotchArr.cnt == "" ) : break
+
+                        if ( ( notch.int( dnotchArr.cnt ) ) == nowMasconPos ) : notchSkip = 1 : break
+
+                    loop
+
+                    if ( notchSkip == 0 ) : logmes "+" : aplkey buttons.masconB
+
+                }
+
+                if ( prevMasconPos < nowMasconPos ) {
+
+                    notchSkip = 0
+
+                    foreach dnotchArr
+
+                        if ( dnotchArr.cnt == "" ) : break
+
+                        if ( ( notch.( int( dnotchArr.cnt ) +1 ) ) == nowMasconPos ) : notchSkip = 1 : break
+
+                    loop
+
+                    if ( notchSkip == 0 ) : logmes "-" : aplkey buttons.masconP
+
+                }
 
             }
 
