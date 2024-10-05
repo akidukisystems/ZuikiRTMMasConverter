@@ -5,7 +5,7 @@
 
     #packopt name "ZRMC"
 
-    // MARK: init
+    // MARK: define
 
     #enum   MASCON_POS  = 3 // マスコン位置
     #enum   PUSH_BUTTON = 8 // 押されているボタン
@@ -30,14 +30,6 @@
     #define btnSH   8192
     #define btnHM   4096
 
-    pname = ""
-    port = 0
-    cfile = ""
-    dnotchs = ""
-    sdim dnotchArr
-
-    dim buttons, 14
-
     #enum masconB = 0
     #enum masconP
     #enum btnAkey
@@ -52,6 +44,18 @@
     #enum btnMNkey
     #enum btnSHkey
     #enum btnHMkey
+
+    // MARK: init
+
+    onexit *exit
+
+    pname = ""
+    port = 0
+    cfile = ""
+    dnotchs = ""
+    sdim dnotchArr
+
+    dim buttons, 14
 
     title "Zuiki RTM MasConverter"
 
@@ -359,3 +363,7 @@
     loop
 
     goto *start
+
+*exit
+
+    end
