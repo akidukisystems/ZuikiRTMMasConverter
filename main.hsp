@@ -5,18 +5,77 @@
 
     #packopt name "ZRMC"
 
+    // MARK: init
+
+    #enum   MASCON_POS  = 3 // マスコン位置
+    #enum   PUSH_BUTTON = 8 // 押されているボタン
+    #enum   PUSHING         // 押されているボタンの数
+
+    #define btnA    4
+    #define btnB    2
+    #define btnX    8
+    #define btnY    1
+    /*
+    #define btnAU   
+    #define btnAD
+    #define btnAL
+    #define btnAR
+    */
+    #define btnZL   64
+    #define btnLL   16
+    #define btnZR   128
+    #define btnRR   32
+    #define btnPL   512
+    #define btnMN   256
+    #define btnSH   8192
+    #define btnHM   4096
+
     pname = ""
     port = 0
-    masconB = 0
-    masconP = 0
+
+    dim buttons, 14
+
+    #enum masconB = 0
+    #enum masconP
+    #enum btnAkey
+    #enum btnBkey
+    #enum btnXkey
+    #enum btnYkey
+    #enum btnZLkey
+    #enum btnLLkey
+    #enum btnZRkey
+    #enum btnRRkey
+    #enum btnPLkey
+    #enum btnMNkey
+    #enum btnSHkey
+    #enum btnHMkey
 
     title "Zuiki RTM MasConverter"
 
     cfgAS_init "config.ascfg"
     cfgAS_read "ProgramName", pname
     cfgAS_read "PortNum", port
-    cfgAS_read "MasconB", masconB
-    cfgAS_read "MasconP", masconP
+
+    keyName.0 = "MasconB"
+    keyName.1 = "MasconP"
+    keyName.2 = "ButtonA"
+    keyName.3 = "ButtonB"
+    keyName.4 = "ButtonX"
+    keyName.5 = "ButtonY"
+    keyName.6 = "ButtonZL"
+    keyName.7 = "ButtonLL"
+    keyName.8 = "ButtonZR"
+    keyName.9 = "ButtonRR"
+    keyName.10 = "ButtonPL"
+    keyName.11 = "ButtonMN"
+    keyName.12 = "ButtonSH"
+    keyName.13 = "ButtonHM"
+
+    foreach keyName
+
+        cfgAS_read keyName.cnt, buttons.cnt
+
+    loop
 
     repeat -1
 
@@ -40,6 +99,8 @@
 
 *start
 
+    // MARK: start
+
     dim data, 16
 
     nowMasconPos = 0
@@ -47,6 +108,7 @@
 
     isSkipCheckMasconPos = 1
     isCalibrated = 0
+    isPushedBtn = 0
 
     noControlerMode = 0
 
@@ -88,16 +150,15 @@
         color
 
         mes "Port: "+ port
-        mes "KeycodeMasconB: "+ masconB
-        mes "KeycodeMasconP: "+ masconP
 
         foreach data
 
             mes "data("+ cnt +"): "+ data.cnt
 
             /** マスコン操作 */
+            // MARK: mascon
 
-            nowMasconPos = data.3
+            nowMasconPos = data.MASCON_POS
 
             if ( isSkipCheckMasconPos ) {
 
@@ -105,8 +166,8 @@
 
             } else {
 
-                if ( prevMasconPos > nowMasconPos ) and ( nowMasconPos != 1280 ) : logmes "+" : aplkey masconB
-                if ( prevMasconPos < nowMasconPos ) and ( nowMasconPos != 4864 ): logmes "-" : aplkey masconP
+                if ( prevMasconPos > nowMasconPos ) and ( nowMasconPos != 1280 ) : logmes "+" : aplkey buttons.masconB
+                if ( prevMasconPos < nowMasconPos ) and ( nowMasconPos != 4864 ): logmes "-" : aplkey buttons.masconP
 
             }
 
@@ -114,13 +175,13 @@
 
             /** 非常投入操作 */
 
-            if ( data.3 == 0 ) {
+            if ( data.MASCON_POS == 0 ) {
 
                 if ( isCalibrated == 0 ) {
 
                     repeat 16
 
-                        logmes "+E" : aplkey masconB
+                        logmes "+E" : aplkey buttons.masconB
 
                     loop
 
@@ -133,6 +194,97 @@
                 isCalibrated = 0
 
             }
+
+            /** Button */
+            // MARK: button
+
+            if ( data.PUSH_BUTTON ) {
+
+                if ( isPushedBtn == 0 ) {
+
+                    if ( peek( data.PUSH_BUTTON, 0 ) && btnA ) {
+
+                        aplkey buttons.btnAkey
+
+                    }
+
+                    if ( peek( data.PUSH_BUTTON, 0 ) && btnB ) {
+
+                        aplkey buttons.btnBkey
+
+                    }
+
+                    if ( peek( data.PUSH_BUTTON, 0 ) && btnX ) {
+
+                        aplkey buttons.btnXkey
+
+                    }
+
+                    if ( peek( data.PUSH_BUTTON, 0 ) && btnY ) {
+
+                        aplkey buttons.btnYkey
+
+                    }
+
+                    if ( peek( data.PUSH_BUTTON, 0 ) && btnZL ) {
+
+                        aplkey buttons.btnZLkey
+
+                    }
+
+                    if ( peek( data.PUSH_BUTTON, 0 ) && btnLL ) {
+
+                        aplkey buttons.btnLLkey
+
+                    }
+
+                    if ( peek( data.PUSH_BUTTON, 0 ) && btnZR ) {
+
+                        aplkey buttons.btnZRkey
+
+                    }
+
+                    if ( peek( data.PUSH_BUTTON, 0 ) && btnRR ) {
+
+                        aplkey buttons.btnRRkey
+
+                    }
+
+                    if ( peek( data.PUSH_BUTTON, 0 ) && btnPL ) {
+
+                        aplkey buttons.btnPLkey
+
+                    }
+
+                    if ( peek( data.PUSH_BUTTON, 0 ) && btnMN ) {
+
+                        aplkey buttons.btnMNkey
+
+                    }
+
+                    if ( peek( data.PUSH_BUTTON, 0 ) && btnSH ) {
+
+                        aplkey buttons.btnSHkey
+
+                    }
+
+                    if ( peek( data.PUSH_BUTTON, 0 ) && btnHM ) {
+
+                        aplkey buttons.btnHMkey
+
+                    }
+
+                }
+
+                isPushedBtn = 1
+
+            } else {
+
+                isPushedBtn = 0
+
+            }
+
+            
     
         loop
 
