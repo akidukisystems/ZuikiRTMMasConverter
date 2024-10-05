@@ -84,6 +84,8 @@
     keyName.12 = "ButtonSH"
     keyName.13 = "ButtonHM"
 
+    if ( length( keyName ) != length( buttons ) ) : mes "not match array length. line:"+ __line__ : stop
+
     foreach keyName
 
         cfgAS_read keyName.cnt, buttons.cnt
@@ -100,6 +102,8 @@
 
     loop
 
+
+    // 検出とリトライ
     retryCount = 0
 
     repeat -1
@@ -140,6 +144,7 @@
 
     noControlerMode = 0
 
+    // 検出とリトライ
     retryCount = 0
 
     repeat -1
