@@ -65,8 +65,7 @@
 
     foreach dnotchArr
 
-        if ( dnotchArr.0 == "0" ) : dialog "無効ノッチ設定に\"EB\"段が設定されています。続行できません。"
-        stop
+        if ( dnotchArr.0 == "0" ) : dialog "無効ノッチ設定に\"EB\"段が設定されています。続行できません。" : stop
 
     loop
 
@@ -101,7 +100,11 @@
 
     loop
 
+    retryCount = 0
+
     repeat -1
+
+        if ( retryCount == 3 ) : break
 
         aplsel pname, cnt
 
@@ -119,6 +122,8 @@
 
         }
 
+        retryCount ++
+
     loop
 
 *start
@@ -130,13 +135,16 @@
     nowMasconPos = 0
     prevMasconPos = 0
 
-    isSkipCheckMasconPos = 1
     isCalibrated = 0
     isPushedBtn = 0
 
     noControlerMode = 0
 
+    retryCount = 0
+
     repeat -1
+
+        if ( retryCount == 3 ) : break
 
         joyGetPosEx data, port
 
@@ -156,6 +164,8 @@
             break
 
         }
+
+        retryCount ++
 
     loop
     
@@ -184,11 +194,7 @@
 
             nowMasconPos = data.MASCON_POS
 
-            if ( isSkipCheckMasconPos ) {
-
-                isSkipCheckMasconPos = 0
-
-            } else {
+            if ( cnt ) {
 
                 if ( prevMasconPos > nowMasconPos ) {
 
