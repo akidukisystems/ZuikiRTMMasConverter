@@ -66,6 +66,7 @@
     foreach dnotchArr
 
         if ( dnotchArr.0 == "0" ) : dialog "無効ノッチ設定に\"EB\"段が設定されています。続行できません。"
+        stop
 
     loop
 
