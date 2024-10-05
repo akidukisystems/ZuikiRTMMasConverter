@@ -2,6 +2,7 @@ ProgramName="Minecraft"
 Port=0
 Controller="ZKNS-013.ini"
 DisabledNotch="1"
+MaxRetry=3
 MasconB=87
 MasconP=83
 ButtonA=69

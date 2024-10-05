@@ -11,6 +11,8 @@
     #enum   PUSH_BUTTON = 8 // 押されているボタン
     #enum   PUSHING         // 押されているボタンの数
 
+    #define titleName   "Zuiki RTM MasConverter"
+
     #define btnA    4
     #define btnB    2
     #define btnX    8
@@ -45,6 +47,28 @@
     #enum btnSHkey
     #enum btnHMkey
 
+    #module zrmcerr
+
+        #define global handleError(%1, %2=0, %3=0) handleErrorF@zrmcerr %1, %2, %3
+
+        #deffunc local handleErrorF str errmessage, int type, int value
+
+            if ( type ) {
+
+                dialog "エラー: "+ errmessage +"\n開発者にお問い合わせください。\n\nデバッグ用コード: "+ value, 1, titleName@
+
+            } else {
+
+                dialog "エラー: "+ errmessage, 1, titleName@
+
+            }
+
+            end
+
+        return
+
+    #global
+
     // MARK: init
 
     onexit *exit
@@ -53,23 +77,29 @@
     port = 0
     cfile = ""
     dnotchs = ""
+    maxRetryCount = 3
+
     sdim dnotchArr
 
     dim buttons, 14
 
-    title "Zuiki RTM MasConverter"
+    title titleName
 
     cfgAS_init "config.ascfg"
+
+    if ( stat ) : handleError "設定ファイルが読み込めません。"
+
     cfgAS_read "ProgramName", pname
     cfgAS_read "PortNum", port
     cfgAS_read "Controller", cfile
     cfgAS_read "DisabledNotch", dnotchs
+    cfgAS_read "MaxRetry", maxRetryCount
 
     splitEx dnotchs, dnotchArr, ','
 
     foreach dnotchArr
 
-        if ( dnotchArr.0 == "0" ) : dialog "無効ノッチ設定に\"EB\"段が設定されています。続行できません。" : stop
+        if ( dnotchArr.0 == "0" ) : handleError "無効ノッチ設定に\"EB\"が指定されています。"
 
     loop
 
@@ -88,7 +118,7 @@
     keyName.12 = "ButtonSH"
     keyName.13 = "ButtonHM"
 
-    if ( length( keyName ) != length( buttons ) ) : mes "not match array length. line:"+ __line__ : stop
+    if ( length( keyName ) != length( buttons ) ) : handleError "配列要素数が一致しません。", 1, __line__
 
     foreach keyName
 
@@ -97,6 +127,8 @@
     loop
 
     cfgAS_init cfile
+
+    if ( stat ) : handleError "コントローラー定義ファイルが読み込めません。"
 
     dim notch, 15
 
@@ -112,19 +144,19 @@
 
     repeat -1
 
-        if ( retryCount == 3 ) : break
+        if ( retryCount == maxRetryCount ) : break
 
         aplsel pname, cnt
 
         if ( stat == 0 ) {
 
-            dialog "プログラム \""+ refstr +"\" が検出されました。このプログラムにキー情報を送信しますか？", 2, "Zuiki RTM MasConverter"
+            dialog "プログラム \""+ refstr +"\" が検出されました。このプログラムにキー情報を送信しますか？", 2, titleName
 
             if ( stat == 6 ) : break
 
         } else {
 
-            dialog "プログラムは検出されませんでした。再試行しますか？", 2, "Zuiki RTM MasConverter"
+            dialog "プログラムは検出されませんでした。再試行しますか？", 2, titleName
 
             if ( stat != 6 ) : break
 
@@ -153,13 +185,13 @@
 
     repeat -1
 
-        if ( retryCount == 3 ) : break
+        if ( retryCount == maxRetryCount ) : break
 
         joyGetPosEx data, port
 
         if ( stat ) {
 
-            dialog "コントローラーが検出されませんでした。再試行しますか？", 2, "Zuiki RTM MasConverter"
+            dialog "コントローラーが検出されませんでした。再試行しますか？", 2, titleName
 
             if ( stat != 6 ) {
                 
