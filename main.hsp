@@ -210,33 +210,22 @@
 
     noControllerMode = false
 
-    // 検出とリトライ
-    retryCount = 0
+    // 検出されるまで待つ
+
+    cls 0
+    mes "コントローラーの接続を待機しています...。\nポート番号: "+ port
 
     repeat forever
 
-        if ( retryCount == maxRetryCount ) : break
-
         joyGetPosEx data, port
 
-        if ( stat ) {
-
-            dialog "コントローラーが検出されませんでした。再試行しますか？", 2, titleName
-
-            if ( stat != 6 ) {
-                
-                noControllerMode = true
-                break
-
-            }
-
-        } else {
+        if ( stat == 0 ) {
 
             break
 
         }
 
-        retryCount ++
+        wait 10
 
     loop
     
