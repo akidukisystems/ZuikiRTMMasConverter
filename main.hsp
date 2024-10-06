@@ -13,6 +13,7 @@
 
     #define titleName   "Zuiki RTM MasConverter"
 
+    // buttonkeyなどの配列の要素名
     #enum masconB = 0
     #enum masconP
     #enum btnA
@@ -28,10 +29,23 @@
     #enum btnSH
     #enum btnHM
 
+    #define singleButtonIndex 2   // buttonkeyなどで、どこからbuttonが始まるか
 
-    #module zrmcerr
+    #define true    1
+    #define false   0
 
-        #define global handleError(%1, %2=0, %3=0) handleErrorF@zrmcerr %1, %2, %3
+    #define Increase    0
+    #define Decrease    1
+
+    #define wasIncreasedMasconPos   prevMasconPos > nowMasconPos
+    #define WasDecreasedMasconPos   prevMasconPos < nowMasconPos
+
+    #define forever -1
+
+
+    #module ZRMCTools
+
+        #define global handleError(%1, %2=0, %3=0) handleErrorF@ZRMCTools %1, %2, %3
 
         #deffunc local handleErrorF str errmessage, int type, int value
 
@@ -49,6 +63,20 @@
 
         return
 
+        #defcfunc notchSkipProcess array skipNotchs, array notchs, int masconPos, int adj
+
+            notchSkip = 0
+
+            foreach skipNotchs
+
+                if ( skipNotchs.cnt == "" ) : break
+
+                if ( ( notchs.( int( skipNotchs.cnt ) + adj ) ) == masconPos ) : notchSkip = 1 : break
+
+            loop
+
+        return notchSkip
+
     #global
 
     // MARK: init
@@ -65,7 +93,7 @@
 
     title titleName
 
-    // ここからconfig
+    //// ここからconfig
 
     cfgAS_init "config.ascfg"
 
@@ -77,17 +105,18 @@
     cfgAS_read "DisabledNotch", dnotchs
     cfgAS_read "MaxRetry", maxRetryCount
 
+    // 無効ノッチ設定読み込み
     splitEx dnotchs, dnotchArr, ','
 
     foreach dnotchArr
 
-        if ( dnotchArr.0 == "0" ) : handleError "無効ノッチ設定に \"EB\" が指定されています。\n\"config.ascfg\" 内の \"DisabledNotch\" から \"0\" を削除してください。"
+        if ( dnotchArr.cnt == "0" ) : handleError "無効ノッチ設定に \"EB\" が指定されています。\n\"config.ascfg\" 内の \"DisabledNotch\" から \"0\" を削除してください。"
 
     loop
 
 
 
-    // ここからcfile
+    //// ここからcfile
 
     cfgAS_init cfile
 
@@ -99,47 +128,40 @@
     cfgAS_read "notchSize", notchSize
     cfgAS_read "buttonSize", buttonSize
 
+    // 各段のY軸変換方向との対応
     dim notch, notchSize
-
     foreach notch
 
         cfgAS_read "notch"+ cnt, notch.cnt
 
     loop
 
+    // ボタン名と配列要素の対応
     sdim buttonName, 64, buttonSize
-
     foreach buttonName
 
-        cfgAS_read "button"+ cnt, buttonName.cnt
+        cfgAS_read "buttonName"+ cnt, buttonName.cnt
 
     loop
 
-    buttonFlag.0 = 0
-    buttonFlag.1 = 0
-    buttonFlag.2 = 4
-    buttonFlag.3 = 2
-    buttonFlag.4 = 8
-    buttonFlag.5 = 1
-    buttonFlag.6 = 64
-    buttonFlag.7 = 16
-    buttonFlag.8 = 128
-    buttonFlag.9 = 32
-    buttonFlag.10 = 512
-    buttonFlag.11 = 256
-    buttonFlag.12 = 8192
-    buttonFlag.13 = 4096
+    // ボタン名とdata.PUSH_BUTTONの各ビットの対応
+    sdim buttonFlag, 64, buttonSize
+    foreach buttonName
 
-    dim buttonKey, length( buttonName )
+        cfgAS_read "buttonFlag"+ cnt, buttonFlag.cnt
+
+    loop
 
 
 
-    // ここからconfig
+    //// ここからconfig
 
     cfgAS_init "config.ascfg"
 
     if ( stat ) : handleError "設定ファイル \"config.ascfg\" が読み込めません。"
 
+    // ボタン名と送信するキーコードの対応
+    dim buttonKey, length( buttonName )
     foreach buttonName
 
         cfgAS_read buttonName.cnt, buttonKey.cnt
@@ -150,7 +172,7 @@
     // 検出とリトライ
     retryCount = 0
 
-    repeat -1
+    repeat forever
 
         if ( retryCount == maxRetryCount ) : break
 
@@ -183,15 +205,15 @@
     nowMasconPos = 0
     prevMasconPos = 0
 
-    isCalibrated = 0
-    isPushedBtn = 0
+    isCalibrated = false
+    isPushedBtn = false
 
-    noControllerMode = 0
+    noControllerMode = false
 
     // 検出とリトライ
     retryCount = 0
 
-    repeat -1
+    repeat forever
 
         if ( retryCount == maxRetryCount ) : break
 
@@ -203,7 +225,7 @@
 
             if ( stat != 6 ) {
                 
-                noControllerMode = 1
+                noControllerMode = true
                 break
 
             }
@@ -222,15 +244,17 @@
 
     // MARK: loop
 
-    repeat -1
+    repeat forever
 
+        // 今のループ回数をいれておく
         nowCnt = cnt
 
         joyGetPosEx data, port
 
-        if ( stat ) and ( noContrillerMode == 0 ) : break
+        // 切断されたら再試行
+        if ( stat ) and ( noControllerMode == false ) : break
 
-        redraw 0
+        redraw false
 
         pos 0, 0
         color 255, 255, 255 : boxf
@@ -247,39 +271,18 @@
 
             nowMasconPos = data.MASCON_POS
 
+            // メインループが初回ならマスコン制御をスキップ
             if ( nowCnt ) {
 
-                if ( prevMasconPos > nowMasconPos ) {
+                if ( wasIncreasedMasconPos ) {
 
-                    // ノッチスキップ
-                    notchSkip = 0
-
-                    foreach dnotchArr
-
-                        if ( dnotchArr.cnt == "" ) : break
-
-                        if ( ( notch.int( dnotchArr.cnt ) ) == nowMasconPos ) : notchSkip = 1 : break
-
-                    loop
-
-                    if ( notchSkip == 0 ) : logmes "Sended masconB" : aplkey buttonKey.masconB
+                    if ( notchSkipProcess( dnotchArr, notch, nowMasconPos, Increase ) == false ) : logmes "Sended masconB" : aplkey buttonKey.masconB
 
                 }
 
-                if ( prevMasconPos < nowMasconPos ) {
+                if ( WasDecreasedMasconPos ) {
 
-                    // ノッチスキップ
-                    notchSkip = 0
-
-                    foreach dnotchArr
-
-                        if ( dnotchArr.cnt == "" ) : break
-
-                        if ( ( notch.( int( dnotchArr.cnt ) +1 ) ) == nowMasconPos ) : notchSkip = 1 : break
-
-                    loop
-
-                    if ( notchSkip == 0 ) : logmes "Sended masconP" : aplkey buttonKey.masconP
+                    if ( notchSkipProcess( dnotchArr, notch, nowMasconPos, Decrease ) == false ) : logmes "Sended masconP" : aplkey buttonKey.masconP
 
                 }
 
@@ -289,9 +292,10 @@
 
             /** 非常投入操作 */
 
-            if ( data.MASCON_POS == 0 ) {
+            if ( data.MASCON_POS == notch.0 ) {
 
-                if ( isCalibrated == 0 ) {
+                // 連続キャリブレーション回避用
+                if ( isCalibrated == false ) {
 
                     repeat 16
 
@@ -299,13 +303,13 @@
 
                     loop
 
-                    isCalibrated = 1
+                    isCalibrated = true
 
                 }
 
             } else {
 
-                isCalibrated = 0
+                isCalibrated = false
 
             }
 
@@ -314,11 +318,14 @@
 
             if ( data.PUSH_BUTTON ) {
 
-                if ( isPushedBtn == 0 ) {
+                // 連続押下回避用
+                if ( isPushedBtn == false ) {
 
-                    repeat length( buttonFlag ) -2, 2
+                    // buttonFlagの0-1要素は空データなのでスキップ
+                    repeat length( buttonFlag ) -singleButtonIndex, singleButtonIndex
 
-                        if ( peek( data.PUSH_BUTTON, 0 ) && buttonFlag.cnt ) {
+                        // 押されているボタンを各ビットから識別
+                        if ( data.PUSH_BUTTON && buttonFlag.cnt ) {
 
                             aplkey buttonKey.cnt
 
@@ -326,13 +333,13 @@
 
                     loop
 
-                    isPushedBtn = 1
+                    isPushedBtn = true
 
                 }
 
             } else {
 
-                isPushedBtn = 0
+                isPushedBtn = false
 
             }
 
@@ -340,7 +347,7 @@
     
         loop
 
-        redraw 1
+        redraw true
 
         await 1
 
