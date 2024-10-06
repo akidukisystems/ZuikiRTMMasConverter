@@ -13,39 +13,21 @@
 
     #define titleName   "Zuiki RTM MasConverter"
 
-    #define btnA    4
-    #define btnB    2
-    #define btnX    8
-    #define btnY    1
-    /*
-    #define btnAU   
-    #define btnAD
-    #define btnAL
-    #define btnAR
-    */
-    #define btnZL   64
-    #define btnLL   16
-    #define btnZR   128
-    #define btnRR   32
-    #define btnPL   512
-    #define btnMN   256
-    #define btnSH   8192
-    #define btnHM   4096
-
     #enum masconB = 0
     #enum masconP
-    #enum btnAkey
-    #enum btnBkey
-    #enum btnXkey
-    #enum btnYkey
-    #enum btnZLkey
-    #enum btnLLkey
-    #enum btnZRkey
-    #enum btnRRkey
-    #enum btnPLkey
-    #enum btnMNkey
-    #enum btnSHkey
-    #enum btnHMkey
+    #enum btnA
+    #enum btnB
+    #enum btnX
+    #enum btnY
+    #enum btnZL
+    #enum btnLL
+    #enum btnZR
+    #enum btnRR
+    #enum btnPL
+    #enum btnMN
+    #enum btnSH
+    #enum btnHM
+
 
     #module zrmcerr
 
@@ -81,13 +63,13 @@
 
     sdim dnotchArr
 
-    dim buttons, 14
-
     title titleName
+
+    // ここからconfig
 
     cfgAS_init "config.ascfg"
 
-    if ( stat ) : handleError "設定ファイルが読み込めません。"
+    if ( stat ) : handleError "設定ファイル \"config.ascfg\" が読み込めません。"
 
     cfgAS_read "ProgramName", pname
     cfgAS_read "PortNum", port
@@ -99,42 +81,68 @@
 
     foreach dnotchArr
 
-        if ( dnotchArr.0 == "0" ) : handleError "無効ノッチ設定に\"EB\"が指定されています。"
+        if ( dnotchArr.0 == "0" ) : handleError "無効ノッチ設定に \"EB\" が指定されています。\n\"config.ascfg\" 内の \"DisabledNotch\" から \"0\" を削除してください。"
 
     loop
 
-    keyName.0 = "MasconB"
-    keyName.1 = "MasconP"
-    keyName.2 = "ButtonA"
-    keyName.3 = "ButtonB"
-    keyName.4 = "ButtonX"
-    keyName.5 = "ButtonY"
-    keyName.6 = "ButtonZL"
-    keyName.7 = "ButtonLL"
-    keyName.8 = "ButtonZR"
-    keyName.9 = "ButtonRR"
-    keyName.10 = "ButtonPL"
-    keyName.11 = "ButtonMN"
-    keyName.12 = "ButtonSH"
-    keyName.13 = "ButtonHM"
 
-    if ( length( keyName ) != length( buttons ) ) : handleError "配列要素数が一致しません。", 1, __line__
 
-    foreach keyName
-
-        cfgAS_read keyName.cnt, buttons.cnt
-
-    loop
+    // ここからcfile
 
     cfgAS_init cfile
 
-    if ( stat ) : handleError "コントローラー定義ファイルが読み込めません。"
+    if ( stat ) : handleError "コントローラー定義ファイル \""+ cfile +"\" が読み込めません。"
 
-    dim notch, 15
+    notchSize = 0
+    buttonSize = 0
+
+    cfgAS_read "notchSize", notchSize
+    cfgAS_read "buttonSize", buttonSize
+
+    dim notch, notchSize
 
     foreach notch
 
         cfgAS_read "notch"+ cnt, notch.cnt
+
+    loop
+
+    sdim buttonName, 64, buttonSize
+
+    foreach buttonName
+
+        cfgAS_read "button"+ cnt, buttonName.cnt
+
+    loop
+
+    buttonFlag.0 = 0
+    buttonFlag.1 = 0
+    buttonFlag.2 = 4
+    buttonFlag.3 = 2
+    buttonFlag.4 = 8
+    buttonFlag.5 = 1
+    buttonFlag.6 = 64
+    buttonFlag.7 = 16
+    buttonFlag.8 = 128
+    buttonFlag.9 = 32
+    buttonFlag.10 = 512
+    buttonFlag.11 = 256
+    buttonFlag.12 = 8192
+    buttonFlag.13 = 4096
+
+    dim buttonKey, length( buttonName )
+
+
+
+    // ここからconfig
+
+    cfgAS_init "config.ascfg"
+
+    if ( stat ) : handleError "設定ファイル \"config.ascfg\" が読み込めません。"
+
+    foreach buttonName
+
+        cfgAS_read buttonName.cnt, buttonKey.cnt
 
     loop
 
@@ -178,7 +186,7 @@
     isCalibrated = 0
     isPushedBtn = 0
 
-    noControlerMode = 0
+    noControllerMode = 0
 
     // 検出とリトライ
     retryCount = 0
@@ -195,7 +203,7 @@
 
             if ( stat != 6 ) {
                 
-                noControlerMode = 1
+                noControllerMode = 1
                 break
 
             }
@@ -212,11 +220,15 @@
     
     aplfocus
 
+    // MARK: loop
+
     repeat -1
+
+        nowCnt = cnt
 
         joyGetPosEx data, port
 
-        if ( stat ) and ( noControlerMode == 0 ) : break
+        if ( stat ) and ( noContrillerMode == 0 ) : break
 
         redraw 0
 
@@ -235,10 +247,11 @@
 
             nowMasconPos = data.MASCON_POS
 
-            if ( cnt ) {
+            if ( nowCnt ) {
 
                 if ( prevMasconPos > nowMasconPos ) {
 
+                    // ノッチスキップ
                     notchSkip = 0
 
                     foreach dnotchArr
@@ -249,12 +262,13 @@
 
                     loop
 
-                    if ( notchSkip == 0 ) : logmes "+" : aplkey buttons.masconB
+                    if ( notchSkip == 0 ) : logmes "Sended masconB" : aplkey buttonKey.masconB
 
                 }
 
                 if ( prevMasconPos < nowMasconPos ) {
 
+                    // ノッチスキップ
                     notchSkip = 0
 
                     foreach dnotchArr
@@ -265,7 +279,7 @@
 
                     loop
 
-                    if ( notchSkip == 0 ) : logmes "-" : aplkey buttons.masconP
+                    if ( notchSkip == 0 ) : logmes "Sended masconP" : aplkey buttonKey.masconP
 
                 }
 
@@ -281,7 +295,7 @@
 
                     repeat 16
 
-                        logmes "+E" : aplkey buttons.masconB
+                        logmes "Sended masconB (EB)" : aplkey buttonKey.masconB
 
                     loop
 
@@ -302,81 +316,19 @@
 
                 if ( isPushedBtn == 0 ) {
 
-                    if ( peek( data.PUSH_BUTTON, 0 ) && btnA ) {
+                    repeat length( buttonFlag ) -2, 2
 
-                        aplkey buttons.btnAkey
+                        if ( peek( data.PUSH_BUTTON, 0 ) && buttonFlag.cnt ) {
 
-                    }
+                            aplkey buttonKey.cnt
 
-                    if ( peek( data.PUSH_BUTTON, 0 ) && btnB ) {
+                        }
 
-                        aplkey buttons.btnBkey
+                    loop
 
-                    }
-
-                    if ( peek( data.PUSH_BUTTON, 0 ) && btnX ) {
-
-                        aplkey buttons.btnXkey
-
-                    }
-
-                    if ( peek( data.PUSH_BUTTON, 0 ) && btnY ) {
-
-                        aplkey buttons.btnYkey
-
-                    }
-
-                    if ( peek( data.PUSH_BUTTON, 0 ) && btnZL ) {
-
-                        aplkey buttons.btnZLkey
-
-                    }
-
-                    if ( peek( data.PUSH_BUTTON, 0 ) && btnLL ) {
-
-                        aplkey buttons.btnLLkey
-
-                    }
-
-                    if ( peek( data.PUSH_BUTTON, 0 ) && btnZR ) {
-
-                        aplkey buttons.btnZRkey
-
-                    }
-
-                    if ( peek( data.PUSH_BUTTON, 0 ) && btnRR ) {
-
-                        aplkey buttons.btnRRkey
-
-                    }
-
-                    if ( peek( data.PUSH_BUTTON, 0 ) && btnPL ) {
-
-                        aplkey buttons.btnPLkey
-
-                    }
-
-                    if ( peek( data.PUSH_BUTTON, 0 ) && btnMN ) {
-
-                        aplkey buttons.btnMNkey
-
-                    }
-
-                    if ( peek( data.PUSH_BUTTON, 0 ) && btnSH ) {
-
-                        aplkey buttons.btnSHkey
-
-                    }
-
-                    if ( peek( data.PUSH_BUTTON, 0 ) && btnHM ) {
-
-                        aplkey buttons.btnHMkey
-
-                    }
+                    isPushedBtn = 1
 
                 }
-
-                isPushedBtn = 1
 
             } else {
 
