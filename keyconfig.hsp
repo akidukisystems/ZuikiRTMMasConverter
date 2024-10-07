@@ -26,11 +26,23 @@
 
             string ="<Undefined>"
 
+            if ( code == 0 ) {
+
+                return "<未割当て>"
+
+
+            }
+
             foreach codeList
 
                 if ( cnt == code ) {
 
-                    string = codeList.cnt
+                    if ( codeList.cnt != "" ) {
+
+                        string = codeList.cnt
+            
+                    }
+                    
                     break
 
                 }
@@ -84,6 +96,7 @@
 
     mes "割り当てるキーを押してください。\n（同時押し不可）"
     button gosub "キャンセル", *l_cancel
+    button gosub "割当て解除", *l_del
 
     gsel 1, -1
     gsel 0
@@ -196,13 +209,25 @@
 
     cfgAS_init "config.ascfg"
 
-    if ( keyStat == 1 ) {
+    switch keyStat
 
-        buttons.pushedButtonObj = wparam
-        cfgAS_write keyName.pushedButtonObj, buttons.pushedButtonObj, 1
-        cfgAS_save "config.ascfg"
+        case 1
 
-    }
+            buttons.pushedButtonObj = wparam
+            cfgAS_write keyName.pushedButtonObj, buttons.pushedButtonObj, 1
+            cfgAS_save "config.ascfg"
+
+        swbreak
+
+        case 3
+
+            buttons.pushedButtonObj = 0
+            cfgAS_remove keyName.pushedButtonObj
+            cfgAS_save "config.ascfg"
+
+        swbreak
+
+    swend
 
     onkey 0
     gsel 1, -1
@@ -219,5 +244,11 @@
 *l_cancel
 
     keyStat = 2
+
+    return
+
+*l_del
+
+    keyStat = 3
 
     return
