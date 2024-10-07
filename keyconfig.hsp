@@ -30,7 +30,6 @@
 
                 return "<–¢Š„“–‚Ä>"
 
-
             }
 
             foreach codeList
@@ -50,6 +49,45 @@
             loop
 
         return string
+
+
+        #defcfunc isEnableKeyCode int code, array codeList
+
+            if ( code >= 48 ) and ( code <= 57 ) {
+
+                return 1
+
+            }
+
+            if ( code >= 65 ) and ( code <= 90 ) {
+
+                return 1
+
+            }
+
+            if ( code == 0 ) {
+
+                return 0
+
+            }
+
+            foreach codeList
+
+                if ( cnt == code ) {
+
+                    if ( codeList.cnt != "" ) {
+
+                        return 1
+            
+                    }
+                    
+                    break
+
+                }
+
+            loop
+
+        return 0
 
     #global
 
@@ -213,9 +251,13 @@
 
         case 1
 
-            buttons.pushedButtonObj = wparam
-            cfgAS_write keyName.pushedButtonObj, buttons.pushedButtonObj, 1
-            cfgAS_save "config.ascfg"
+            if ( isEnableKeyCode( wparam, keyCode ) ) {
+
+                buttons.pushedButtonObj = wparam
+                cfgAS_write keyName.pushedButtonObj, buttons.pushedButtonObj, 1
+                cfgAS_save "config.ascfg"
+
+            }
 
         swbreak
 
