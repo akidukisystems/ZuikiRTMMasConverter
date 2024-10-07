@@ -2,6 +2,45 @@
     #include "cfg.as"
     #packopt name "KeyConfig"
 
+    #module
+
+        #defcfunc convertKeyCode int code, array codeList
+
+            string = ""
+
+            if ( code >= 48 ) and ( code <= 57 ) {
+
+                poke string, 0, code
+                poke string, 1, 0
+                return string
+
+            }
+
+            if ( code >= 65 ) and ( code <= 90 ) {
+
+                poke string, 0, code
+                poke string, 1, 0
+                return string
+
+            }
+
+            string ="<Undefined>"
+
+            foreach codeList
+
+                if ( cnt == code ) {
+
+                    string = codeList.cnt
+                    break
+
+                }
+
+            loop
+
+        return string
+
+    #global
+
     pname = ""
     port = 0
 
@@ -65,76 +104,75 @@
 
     loop
 
+    cfgAS_init "keycodelist.ini"
+
+    keyCodeMaxIndex = 0
+    cfgAS_read "maxIndex", keyCodeMaxIndex
+
+    sdim keyCode, 64, keyCodeMaxIndex +1
+
+    repeat keyCodeMaxIndex +1
+
+        cfgAS_read str(cnt), keyCode.cnt
+
+    loop
+
     sdim keyStr
 
     pos 0, ginfo_cy
-    poke keyStr, 0, buttons.masconB
-    mes "ワンハンドルマスコン　制動方向: "+ keyStr +"　", 1
+    mes "ワンハンドルマスコン　制動方向: "+ convertKeyCode( buttons.masconB, keyCode ) +"　", 1
     button "設定", *l_setkey
 
     pos 0, ginfo_cy
-    poke keyStr, 0, buttons.masconP
-    mes "ワンハンドルマスコン　力行方向: "+ keyStr +"　", 1
+    mes "ワンハンドルマスコン　力行方向: "+ convertKeyCode( buttons.masconP, keyCode ) +"　", 1
     button "設定", *l_setkey
 
     pos 0, ginfo_cy
-    poke keyStr, 0, buttons.btnAkey
-    mes "ボタン　A : "+ keyStr +"　", 1
+    mes "ボタン　A : "+ convertKeyCode( buttons.btnAkey, keyCode ) +"　", 1
     button "設定", *l_setkey
 
     pos 0, ginfo_cy
-    poke keyStr, 0, buttons.btnBkey
-    mes "ボタン　B : "+ keyStr +"　", 1
+    mes "ボタン　B : "+ convertKeyCode( buttons.btnBkey, keyCode ) +"　", 1
     button "設定", *l_setkey
 
     pos 0, ginfo_cy
-    poke keyStr, 0, buttons.btnXkey
-    mes "ボタン　X : "+ keyStr +"　", 1
+    mes "ボタン　X : "+ convertKeyCode( buttons.btnXkey, keyCode ) +"　", 1
     button "設定", *l_setkey
 
     pos 0, ginfo_cy
-    poke keyStr, 0, buttons.btnYkey
-    mes "ボタン　Y : "+ keyStr +"　", 1
+    mes "ボタン　Y : "+ convertKeyCode( buttons.btnYkey, keyCode ) +"　", 1
     button "設定", *l_setkey
 
     pos 0, ginfo_cy
-    poke keyStr, 0, buttons.btnZLkey
-    mes "ボタン　ZL: "+ keyStr +"　", 1
+    mes "ボタン　ZL: "+ convertKeyCode( buttons.btnZLkey, keyCode ) +"　", 1
     button "設定", *l_setkey
 
     pos 0, ginfo_cy
-    poke keyStr, 0, buttons.btnLLkey
-    mes "ボタン　L : "+ keyStr +"　", 1
+    mes "ボタン　L : "+ convertKeyCode( buttons.btnLLkey, keyCode ) +"　", 1
     button "設定", *l_setkey
 
     pos 0, ginfo_cy
-    poke keyStr, 0, buttons.btnZRkey
-    mes "ボタン　ZR: "+ keyStr +"　", 1
+    mes "ボタン　ZR: "+ convertKeyCode( buttons.btnZRkey, keyCode ) +"　", 1
     button "設定", *l_setkey
 
     pos 0, ginfo_cy
-    poke keyStr, 0, buttons.btnRRkey
-    mes "ボタン　R : "+ keyStr +"　", 1
+    mes "ボタン　R : "+ convertKeyCode( buttons.btnRRkey, keyCode ) +"　", 1
     button "設定", *l_setkey
 
     pos 0, ginfo_cy
-    poke keyStr, 0, buttons.btnPLkey
-    mes "ボタン　+ : "+ keyStr +"　", 1
+    mes "ボタン　+ : "+ convertKeyCode( buttons.btnPLkey, keyCode ) +"　", 1
     button "設定", *l_setkey
 
     pos 0, ginfo_cy
-    poke keyStr, 0, buttons.btnMNkey
-    mes "ボタン　- : "+ keyStr +"　", 1
+    mes "ボタン　- : "+ convertKeyCode( buttons.btnMNkey, keyCode ) +"　", 1
     button "設定", *l_setkey
 
     pos 0, ginfo_cy
-    poke keyStr, 0, buttons.btnSHkey
-    mes "ボタン　共有　: "+ keyStr +"　", 1
+    mes "ボタン　共有　: "+ convertKeyCode( buttons.btnSHkey, keyCode ) +"　", 1
     button "設定", *l_setkey
 
     pos 0, ginfo_cy
-    poke keyStr, 0, buttons.btnHMkey
-    mes "ボタン　ホーム: "+ keyStr +"　", 1
+    mes "ボタン　ホーム: "+ convertKeyCode( buttons.btnHMkey, keyCode ) +"　", 1
     button "設定", *l_setkey
 
     stop
@@ -155,6 +193,8 @@
         wait 1
 
     loop
+
+    cfgAS_init "config.ascfg"
 
     if ( keyStat == 1 ) {
 
