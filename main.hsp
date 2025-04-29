@@ -88,6 +88,7 @@
     cfile = ""
     dnotchs = ""
     maxRetryCount = 3
+    isOutputDebugInfo = 0
 
     sdim dnotchArr
 
@@ -104,6 +105,7 @@
     cfgAS_read "Controller", cfile
     cfgAS_read "DisabledNotch", dnotchs
     cfgAS_read "MaxRetry", maxRetryCount
+    cfgAS_read "isOutputDebugInfo", isOutputDebugInfo
 
     // 無効ノッチ設定読み込み
     splitEx dnotchs, dnotchArr, ','
@@ -231,6 +233,8 @@
     
     aplfocus
 
+    mes "接続を検出しました。"
+
     // MARK: loop
 
     repeat forever
@@ -243,100 +247,102 @@
         // 切断されたら再試行
         if ( stat ) and ( noControllerMode == false ) : break
 
-        redraw false
+        if ( isOutputDebugInfo ) {
 
-        pos 0, 0
-        color 255, 255, 255 : boxf
-        color
+            redraw false
 
-        mes "Port: "+ port
+            pos 0, 0
+            color 255, 255, 255 : boxf
+            color
 
-        foreach data
+            mes "Port: "+ port
 
-            mes "data("+ cnt +"): "+ data.cnt
+            foreach data
 
-            /** マスコン操作 */
-            // MARK: mascon
+                mes "data("+ cnt +"): "+ data.cnt
 
-            nowMasconPos = data.MASCON_POS
+            loop
 
-            // メインループが初回ならマスコン制御をスキップ
-            if ( nowCnt ) {
+        }
 
-                if ( wasIncreasedMasconPos ) {
+        /** マスコン操作 */
+        // MARK: mascon
 
-                    if ( notchSkipProcess( dnotchArr, notch, nowMasconPos, Increase ) == false ) : logmes "Sended masconB" : aplkey buttonKey.masconB
+        nowMasconPos = data.MASCON_POS
 
-                }
+        // メインループが初回ならマスコン制御をスキップ
+        if ( nowCnt ) {
 
-                if ( WasDecreasedMasconPos ) {
+            if ( wasIncreasedMasconPos ) {
 
-                    if ( notchSkipProcess( dnotchArr, notch, nowMasconPos, Decrease ) == false ) : logmes "Sended masconP" : aplkey buttonKey.masconP
-
-                }
+                if ( notchSkipProcess( dnotchArr, notch, nowMasconPos, Increase ) == false ) : logmes "Sended masconB" : aplkey buttonKey.masconB
 
             }
 
-            prevMasconPos = nowMasconPos
+            if ( WasDecreasedMasconPos ) {
 
-            /** 非常投入操作 */
-
-            if ( data.MASCON_POS == notch.0 ) {
-
-                // 連続キャリブレーション回避用
-                if ( isCalibrated == false ) {
-
-                    repeat 16
-
-                        logmes "Sended masconB (EB)" : aplkey buttonKey.masconB
-
-                    loop
-
-                    isCalibrated = true
-
-                }
-
-            } else {
-
-                isCalibrated = false
+                if ( notchSkipProcess( dnotchArr, notch, nowMasconPos, Decrease ) == false ) : logmes "Sended masconP" : aplkey buttonKey.masconP
 
             }
 
-            /** Button */
-            // MARK: button
+        }
 
-            if ( data.PUSH_BUTTON ) {
+        prevMasconPos = nowMasconPos
 
-                // 連続押下回避用
-                if ( isPushedBtn == false ) {
+        /** 非常投入操作 */
 
-                    // buttonFlagの0-1要素は空データなのでスキップ
-                    repeat length( buttonFlag ) -singleButtonIndex, singleButtonIndex
+        if ( data.MASCON_POS == notch.0 ) {
 
-                        // 押されているボタンを各ビットから識別
-                        if ( data.PUSH_BUTTON && buttonFlag.cnt ) {
+            // 連続キャリブレーション回避用
+            if ( isCalibrated == false ) {
 
-                            aplkey buttonKey.cnt
+                repeat 16
 
-                        }
+                    logmes "Sended masconB (EB)" : aplkey buttonKey.masconB
 
-                    loop
+                loop
 
-                    isPushedBtn = true
-
-                }
-
-            } else {
-
-                isPushedBtn = false
+                isCalibrated = true
 
             }
 
-            
-    
-        loop
+        } else {
 
-        redraw true
+            isCalibrated = false
+
+        }
+
+        /** Button */
+        // MARK: button
+
+        if ( data.PUSH_BUTTON ) {
+
+            // 連続押下回避用
+            if ( isPushedBtn == false ) {
+
+                // buttonFlagの0-1要素は空データなのでスキップ
+                repeat length( buttonFlag ) -singleButtonIndex, singleButtonIndex
+
+                    // 押されているボタンを各ビットから識別
+                    if ( data.PUSH_BUTTON && buttonFlag.cnt ) {
+
+                        aplkey buttonKey.cnt
+
+                    }
+
+                loop
+
+                isPushedBtn = true
+
+            }
+
+        } else {
+
+            isPushedBtn = false
+
+        }
+
+        if ( isOutputDebugInfo ) : redraw true
 
         await 1
 
